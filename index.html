@@ -282,23 +282,52 @@ async function patch(id, data) {
   if (!r.ok) console.error("Patch error:", await r.text());
 }
 
-// Find email via Edge Function
+// Find email by scraping website via CORS proxy
 async function findEmail() {
-  if (!selected||!selected.website) return;
-  toast("Suche Email...");
-  try {
-    const r = await fetch(SB+"/functions/v1/outreach",{method:"POST",headers:H,body:JSON.stringify({action:"scrape_email",website:selected.website})});
-    const d = await r.json();
-    if (d.email) {
-      await patch(selected.id,{email:d.email});
-      toast("Email: "+d.email);
-    } else {
-      await patch(selected.id,{status:"no_email"});
-      toast("Kein Email gefunden");
+  if (!selected || !selected.website) return toast("Keine Website vorhanden");
+  toast("Suche Email auf " + selected.website + "...");
+
+  const junk = ["wix.com","example.com","sentry.io","wordpress.com","w3.org","schema.org","googleapis.com","gstatic.com","facebook.com","instagram.com","twitter.com"];
+  const preferred = ["info@","kontakt@","reserv","restaurant@","post@","mail@","hallo@","office@","buchen@"];
+  const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+
+  const pages = ["", "/kontakt", "/impressum", "/contact", "/about"];
+  let foundEmail = null;
+
+  for (const path of pages) {
+    if (foundEmail) break;
+    try {
+      const url = selected.website.replace(/\/$/,"") + path;
+      const proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+      console.log("Fetching:", url);
+      const r = await fetch(proxy);
+      if (!r.ok) continue;
+      const html = await r.text();
+
+      let emails = [...new Set((html.match(emailRegex) || []))].map(e => e.toLowerCase());
+      emails = emails.filter(e => !junk.some(j => e.includes(j)));
+      console.log("Found emails on " + path + ":", emails);
+
+      // Prefer known patterns
+      for (const pref of preferred) {
+        const match = emails.find(e => e.includes(pref));
+        if (match) { foundEmail = match; break; }
+      }
+      if (!foundEmail && emails.length) foundEmail = emails[0];
+    } catch(e) {
+      console.log("Skip " + path + ":", e.message);
     }
-  } catch(e) { toast("Fehler: "+e.message); }
+  }
+
+  if (foundEmail) {
+    await patch(selected.id, {email: foundEmail});
+    selected.email = foundEmail;
+    toast("Email gefunden: " + foundEmail);
+  } else {
+    toast("Kein Email gefunden - manuell eingeben");
+  }
   await load();
-  selected = prospects.find(p=>p.id===selected.id);
+  selected = prospects.find(p => p.id === selected.id);
   renderDetail();
 }
 
