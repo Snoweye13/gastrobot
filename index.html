@@ -127,7 +127,7 @@ input,textarea{font-family:inherit}
 
 <div id="modalContainer"></div>
 <div id="toastEl" class="toast" style="display:none"></div>
-<div id="map" style="display:none"></div>
+<div id="map" style="width:1px;height:1px;position:absolute;top:-10px;left:-10px"></div>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCgOnKtRVOEHsrL8JhV5CfUDhfvBkKkGGI&libraries=places"></script>
 <script>
@@ -424,13 +424,16 @@ async function searchPlaces() {
 
   try {
     // Geocode city
+    console.log("Geocoding:", cityName);
     const geocoder = new google.maps.Geocoder();
     const geoResult = await new Promise((resolve, reject) => {
       geocoder.geocode({address: cityName}, (results, status) => {
+        console.log("Geocode status:", status);
         if (status === "OK" && results[0]) resolve(results[0].geometry.location);
-        else reject(new Error("Stadt nicht gefunden"));
+        else reject(new Error("Stadt nicht gefunden: " + status));
       });
     });
+    console.log("Location:", geoResult.lat(), geoResult.lng());
 
     // Init map + PlacesService
     const mapEl = document.getElementById("map");
@@ -438,55 +441,47 @@ async function searchPlaces() {
     const service = new google.maps.places.PlacesService(map);
 
     // Nearby search for restaurants
+    console.log("Searching restaurants...");
     const places = await new Promise((resolve, reject) => {
       service.nearbySearch({
         location: geoResult,
         radius: 5000,
         type: "restaurant"
       }, (results, status) => {
+        console.log("Places status:", status, "Count:", results ? results.length : 0);
         if (status === google.maps.places.PlacesServiceStatus.OK) resolve(results);
-        else reject(new Error("Keine Restaurants gefunden"));
+        else reject(new Error("Suche fehlgeschlagen: " + status));
       });
     });
 
-    // Get details for each (website, phone)
+    toast(places.length + " gefunden, lade Details...");
+
+    // Get details for top 20
     const detailed = [];
     for (const place of places.slice(0, 20)) {
-      try {
-        const det = await new Promise((resolve, reject) => {
-          service.getDetails({
-            placeId: place.place_id,
-            fields: ["website", "formatted_phone_number", "url"]
-          }, (result, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK) resolve(result);
-            else resolve({});
-          });
+      const det = await new Promise((resolve) => {
+        service.getDetails({
+          placeId: place.place_id,
+          fields: ["website", "formatted_phone_number", "url"]
+        }, (result, status) => {
+          resolve(status === "OK" ? result : {});
         });
-        detailed.push({
-          name: place.name,
-          address: place.vicinity || "",
-          rating: place.rating || null,
-          website: det.website || "",
-          phone: det.formatted_phone_number || "",
-          google_maps_url: det.url || "",
-          google_place_id: place.place_id,
-        });
-      } catch(e) {
-        detailed.push({
-          name: place.name,
-          address: place.vicinity || "",
-          rating: place.rating || null,
-          website: "",
-          phone: "",
-          google_maps_url: "",
-          google_place_id: place.place_id,
-        });
-      }
+      });
+      detailed.push({
+        name: place.name,
+        address: place.vicinity || "",
+        rating: place.rating || null,
+        website: det.website || "",
+        phone: det.formatted_phone_number || "",
+        google_maps_url: det.url || "",
+        google_place_id: place.place_id,
+      });
     }
 
-    toast(detailed.length + " Restaurants gefunden");
+    toast(detailed.length + " Restaurants geladen");
     renderSearchResults(detailed);
   } catch(e) {
+    console.error("Search error:", e);
     toast("Fehler: " + e.message);
   }
   document.getElementById("searchBtn").textContent = "Suchen";
@@ -507,14 +502,35 @@ async function importResult(i) {
   const r = window._searchResults[i];
   if (!r) return;
   const city = document.getElementById("searchCity").value;
-  await fetch(SB+"/rest/v1/prospects",{
-    method:"POST",headers:{...H,"Prefer":"return=minimal"},
-    body:JSON.stringify({...r,city:city,status:"new"})
-  });
-  window._searchResults.splice(i,1);
-  renderSearchResults(window._searchResults);
-  toast(r.name+" importiert");
-  load();
+  try {
+    const resp = await fetch(SB+"/rest/v1/prospects",{
+      method:"POST",headers:{...H,"Prefer":"return=minimal"},
+      body:JSON.stringify({
+        name: r.name,
+        address: r.address || null,
+        city: city || null,
+        website: r.website || null,
+        phone: r.phone || null,
+        google_rating: r.rating || null,
+        google_maps_url: r.google_maps_url || null,
+        google_place_id: r.google_place_id || null,
+        status: "new"
+      })
+    });
+    if (resp.ok) {
+      window._searchResults.splice(i,1);
+      renderSearchResults(window._searchResults);
+      toast(r.name+" importiert");
+      load();
+    } else {
+      const err = await resp.text();
+      console.error("Import error:", resp.status, err);
+      toast("Fehler: " + resp.status);
+    }
+  } catch(e) {
+    console.error("Import error:", e);
+    toast("Netzwerkfehler");
+  }
 }
 
 // Modals
