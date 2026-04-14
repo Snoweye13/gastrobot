@@ -129,7 +129,10 @@ input,textarea{font-family:inherit}
 <div id="toastEl" class="toast" style="display:none"></div>
 <div id="map" style="width:1px;height:1px;position:absolute;top:-10px;left:-10px"></div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCgOnKtRVOEHsrL8JhV5CfUDhfvBkKkGGI&libraries=places"></script>
+<script>
+(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once."):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:"AIzaSyCgOnKtRVOEHsrL8JhV5CfUDhfvBkKkGGI",v:"weekly"});
+</script>
+
 <script>
 // Config
 const SB = "https://memprnwegkinoueakzgc.supabase.co";
@@ -279,23 +282,75 @@ async function patch(id, data) {
   if (!r.ok) console.error("Patch error:", await r.text());
 }
 
-// Find email via Edge Function
+// Find email by scraping website
 async function findEmail() {
-  if (!selected||!selected.website) return;
-  toast("Suche Email...");
-  try {
-    const r = await fetch(SB+"/functions/v1/outreach",{method:"POST",headers:H,body:JSON.stringify({action:"scrape_email",website:selected.website})});
-    const d = await r.json();
-    if (d.email) {
-      await patch(selected.id,{email:d.email});
-      toast("Email: "+d.email);
-    } else {
-      await patch(selected.id,{status:"no_email"});
-      toast("Kein Email gefunden");
+  if (!selected || !selected.website) return toast("Keine Website vorhanden");
+  toast("Suche Email auf Website...");
+
+  const junk = ["wix.com","example.com","sentry.io","wordpress.com","w3.org","schema.org","googleapis.com","gstatic.com","facebook.com","instagram.com","twitter.com","google.com"];
+  const preferred = ["info@","kontakt@","reserv","restaurant@","post@","mail@","hallo@","office@","buchen@","gastro@"];
+  const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+
+  function decodeEntities(html) {
+    return html
+      .replace(/&#(\d+);/g, (m, c) => String.fromCharCode(c))
+      .replace(/&#x([0-9a-f]+);/gi, (m, c) => String.fromCharCode(parseInt(c,16)))
+      .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")
+      .replace(/\[at\]/gi,"@").replace(/\(at\)/gi,"@")
+      .replace(/\[dot\]/gi,".").replace(/\(dot\)/gi,".");
+  }
+
+  async function fetchPage(url) {
+    // Try allorigins /get endpoint (returns JSON with CORS)
+    const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+    const r = await fetch(proxy);
+    if (!r.ok) throw new Error("Proxy error " + r.status);
+    const j = await r.json();
+    return j.contents || "";
+  }
+
+  const pages = ["", "/kontakt", "/impressum", "/contact", "/about", "/kontakt.html", "/impressum.html"];
+  let foundEmail = null;
+
+  for (const path of pages) {
+    if (foundEmail) break;
+    try {
+      const url = selected.website.replace(/\/$/,"") + path;
+      console.log("Scanning:", url);
+      const html = await fetchPage(url);
+      const decoded = decodeEntities(html);
+
+      // Search in mailto links first
+      const mailtoMatch = decoded.match(/mailto:([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/i);
+      if (mailtoMatch) {
+        const email = mailtoMatch[1].toLowerCase();
+        if (!junk.some(j => email.includes(j))) { foundEmail = email; break; }
+      }
+
+      // Then regex search
+      let emails = [...new Set((decoded.match(emailRegex) || []))].map(e => e.toLowerCase());
+      emails = emails.filter(e => !junk.some(j => e.includes(j)));
+      console.log("Emails on " + path + ":", emails);
+
+      for (const pref of preferred) {
+        const match = emails.find(e => e.includes(pref));
+        if (match) { foundEmail = match; break; }
+      }
+      if (!foundEmail && emails.length) foundEmail = emails[0];
+    } catch(e) {
+      console.log("Skip " + path + ":", e.message);
     }
-  } catch(e) { toast("Fehler: "+e.message); }
+  }
+
+  if (foundEmail) {
+    await patch(selected.id, {email: foundEmail});
+    selected.email = foundEmail;
+    toast("Email gefunden: " + foundEmail);
+  } else {
+    toast("Kein Email gefunden - bitte manuell eingeben");
+  }
   await load();
-  selected = prospects.find(p=>p.id===selected.id);
+  selected = prospects.find(p => p.id === selected.id);
   renderDetail();
 }
 
@@ -416,69 +471,51 @@ async function addManual() {
   } catch(e) { toast("Netzwerkfehler: "+e.message); }
 }
 
-// Search restaurants via Google Maps JS API
+// Search restaurants via new Google Places API
 async function searchPlaces() {
   const cityName = document.getElementById("searchCity").value;
   if (!cityName) return;
   document.getElementById("searchBtn").textContent = "Sucht...";
 
   try {
+    const {Geocoder} = await google.maps.importLibrary("geocoding");
+    const {Place} = await google.maps.importLibrary("places");
+
     // Geocode city
     console.log("Geocoding:", cityName);
-    const geocoder = new google.maps.Geocoder();
-    const geoResult = await new Promise((resolve, reject) => {
-      geocoder.geocode({address: cityName}, (results, status) => {
-        console.log("Geocode status:", status);
-        if (status === "OK" && results[0]) resolve(results[0].geometry.location);
-        else reject(new Error("Stadt nicht gefunden: " + status));
-      });
-    });
-    console.log("Location:", geoResult.lat(), geoResult.lng());
+    const geocoder = new Geocoder();
+    const geoResponse = await geocoder.geocode({address: cityName});
+    if (!geoResponse.results || !geoResponse.results[0]) throw new Error("Stadt nicht gefunden");
 
-    // Init map + PlacesService
-    const mapEl = document.getElementById("map");
-    const map = new google.maps.Map(mapEl, {center: geoResult, zoom: 14});
-    const service = new google.maps.places.PlacesService(map);
+    const loc = geoResponse.results[0].geometry.location;
+    console.log("Location:", loc.lat(), loc.lng());
 
-    // Nearby search for restaurants
+    // Search nearby restaurants
     console.log("Searching restaurants...");
-    const places = await new Promise((resolve, reject) => {
-      service.nearbySearch({
-        location: geoResult,
+    const request = {
+      fields: ["displayName", "location", "rating", "websiteURI", "nationalPhoneNumber", "googleMapsURI", "id", "formattedAddress"],
+      locationRestriction: {
+        center: loc,
         radius: 5000,
-        type: "restaurant"
-      }, (results, status) => {
-        console.log("Places status:", status, "Count:", results ? results.length : 0);
-        if (status === google.maps.places.PlacesServiceStatus.OK) resolve(results);
-        else reject(new Error("Suche fehlgeschlagen: " + status));
-      });
-    });
+      },
+      includedPrimaryTypes: ["restaurant"],
+      maxResultCount: 20,
+    };
 
-    toast(places.length + " gefunden, lade Details...");
+    const {places} = await Place.searchNearby(request);
+    console.log("Found:", places.length);
 
-    // Get details for top 20
-    const detailed = [];
-    for (const place of places.slice(0, 20)) {
-      const det = await new Promise((resolve) => {
-        service.getDetails({
-          placeId: place.place_id,
-          fields: ["website", "formatted_phone_number", "url"]
-        }, (result, status) => {
-          resolve(status === "OK" ? result : {});
-        });
-      });
-      detailed.push({
-        name: place.name,
-        address: place.vicinity || "",
-        rating: place.rating || null,
-        website: det.website || "",
-        phone: det.formatted_phone_number || "",
-        google_maps_url: det.url || "",
-        google_place_id: place.place_id,
-      });
-    }
+    const detailed = places.map(p => ({
+      name: p.displayName || "Unbekannt",
+      address: p.formattedAddress || "",
+      rating: p.rating || null,
+      website: p.websiteURI || "",
+      phone: p.nationalPhoneNumber || "",
+      google_maps_url: p.googleMapsURI || "",
+      google_place_id: p.id || "",
+    }));
 
-    toast(detailed.length + " Restaurants geladen");
+    toast(detailed.length + " Restaurants gefunden");
     renderSearchResults(detailed);
   } catch(e) {
     console.error("Search error:", e);
@@ -502,14 +539,35 @@ async function importResult(i) {
   const r = window._searchResults[i];
   if (!r) return;
   const city = document.getElementById("searchCity").value;
-  await fetch(SB+"/rest/v1/prospects",{
-    method:"POST",headers:{...H,"Prefer":"return=minimal"},
-    body:JSON.stringify({...r,city:city,status:"new"})
-  });
-  window._searchResults.splice(i,1);
-  renderSearchResults(window._searchResults);
-  toast(r.name+" importiert");
-  load();
+  try {
+    const resp = await fetch(SB+"/rest/v1/prospects",{
+      method:"POST",headers:{...H,"Prefer":"return=minimal"},
+      body:JSON.stringify({
+        name: r.name,
+        address: r.address || null,
+        city: city || null,
+        website: r.website || null,
+        phone: r.phone || null,
+        google_rating: r.rating || null,
+        google_maps_url: r.google_maps_url || null,
+        google_place_id: r.google_place_id || null,
+        status: "new"
+      })
+    });
+    if (resp.ok) {
+      window._searchResults.splice(i,1);
+      renderSearchResults(window._searchResults);
+      toast(r.name+" importiert");
+      load();
+    } else {
+      const err = await resp.text();
+      console.error("Import error:", resp.status, err);
+      toast("Fehler: " + resp.status);
+    }
+  } catch(e) {
+    console.error("Import error:", e);
+    toast("Netzwerkfehler");
+  }
 }
 
 // Modals
