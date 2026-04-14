@@ -3,675 +3,568 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GastroBot — Ihr KI-Assistent für Reservierungen</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>GastroBot Outreach</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#faf7f2;--bg-w:#f3ede4;--bg-c:#ffffff;--bg-d:#1a1715;
-  --tx:#1a1715;--tx-m:#5c554b;--tx-mu:#9c9488;
-  --ac:#2d6a4f;--ac-g:rgba(45,106,79,.08);--ac-gs:rgba(45,106,79,.14);
-  --bd:#e8e2d9;--bd-d:#d4cdc3;
-  --fd:'Playfair Display',Georgia,serif;--fb:'Outfit',system-ui,sans-serif;
-  --ss:0 1px 3px rgba(26,23,21,.04);--sm:0 4px 20px rgba(26,23,21,.06);--sl:0 12px 40px rgba(26,23,21,.08);
-}
-html{scroll-behavior:smooth}
-body{font-family:var(--fb);background:var(--bg);color:var(--tx);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.022;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-.container{max-width:1080px;margin:0 auto;padding:0 24px}
+body{font-family:'Outfit',system-ui,sans-serif;background:#fafaf9;color:#1a1715;min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input,textarea{font-family:inherit}
 
-/* ── Reveal ── */
-.rv{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
-.rv.v{opacity:1;transform:translateY(0)}
-.rv-d1{transition-delay:.1s}.rv-d2{transition-delay:.2s}.rv-d3{transition-delay:.3s}
-.rv-s{opacity:0;transform:scale(.92);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
-.rv-s.v{opacity:1;transform:scale(1)}
+.header{background:#1c1917;color:#fafaf9;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:32px;height:32px;background:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+.logo h1{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+.logo p{font-size:11px;color:#a8a29e}
+.header-actions{display:flex;gap:8px}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;border:none;display:flex;align-items:center;gap:6px;transition:all .2s}
+.btn-green{background:#059669;color:#fff}.btn-green:hover{background:#047857}
+.btn-dark{background:#44403c;color:#fff}.btn-dark:hover{background:#57534e}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-outline{background:transparent;border:1px solid #e7e5e4;color:#78716c}.btn-outline:hover{border-color:#a8a29e}
+.btn-blue{background:#eff6ff;color:#2563eb}.btn-blue:hover{background:#dbeafe}
+.btn-amber{background:#fffbeb;color:#b45309}.btn-amber:hover{background:#fef3c7}
+.btn-emerald{background:#ecfdf5;color:#047857}.btn-emerald:hover{background:#d1fae5}
+.btn-send{background:#059669;color:#fff}.btn-send:hover{background:#047857}
+.btn-red{background:#fef2f2;color:#dc2626}.btn-red:hover{background:#fee2e2}
+.btn-regen{background:#f5f5f4;color:#78716c}.btn-regen:hover{background:#e7e5e4}
 
-/* ── Progress ── */
-.progress-bar{position:fixed;top:0;left:0;height:3px;z-index:10000;background:var(--ac);width:0;transition:width .1s linear}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px}
+.stat{background:#fff;border:1px solid #e7e5e4;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px}
+.stat-n{font-size:24px;font-weight:600;color:#1c1917}
+.stat-l{font-size:12px;color:#a8a29e}
 
-/* ── Beta bar ── */
-.beta-bar{text-align:center;padding:10px;background:var(--ac-g);border-bottom:1px solid rgba(45,106,79,.1);font-size:.84rem;color:var(--ac);font-weight:500;animation:slideD .6s cubic-bezier(.16,1,.3,1) both}
-@keyframes slideD{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+.main{display:flex;gap:16px;padding:0 24px 24px;min-height:calc(100vh - 180px)}
+.list-col{flex:1;min-width:0}
+.detail-col{width:380px;flex-shrink:0}
 
-/* ── Nav ── */
-nav{padding:28px 0;display:flex;justify-content:space-between;align-items:center;animation:fi .8s .3s cubic-bezier(.16,1,.3,1) both}
-@keyframes fi{from{opacity:0}to{opacity:1}}
-.logo{font-family:var(--fd);font-size:1.45rem;font-weight:700;color:var(--tx);text-decoration:none;letter-spacing:-.03em}
-.logo span{color:var(--ac)}
-.nav-r{display:flex;align-items:center;gap:24px}
-.nav-l{color:var(--tx-m);text-decoration:none;font-size:.9rem;transition:color .2s}
-.nav-l:hover{color:var(--tx)}
-.cta-n{color:var(--bg);background:var(--bg-d);text-decoration:none;font-weight:500;font-size:.88rem;padding:10px 22px;border-radius:100px;transition:all .3s}
-.cta-n:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,23,21,.15)}
+.filters{display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.fil{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:500;border:1px solid #e7e5e4;background:#fff;color:#78716c;transition:all .2s}
+.fil:hover{border-color:#a8a29e}
+.fil.active{background:#1c1917;color:#fff;border-color:#1c1917}
 
-/* ── Hero ── */
-.hero{padding:80px 0 40px;text-align:center}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 18px;background:var(--bg-c);border:1px solid var(--bd);border-radius:100px;font-size:.82rem;color:var(--tx-m);margin-bottom:36px;font-weight:500;box-shadow:var(--ss);animation:popIn .6s .5s cubic-bezier(.34,1.56,.64,1) both}
-@keyframes popIn{from{opacity:0;transform:scale(.8) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.dot{width:7px;height:7px;background:var(--ac);border-radius:50%;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-.hero h1{font-family:var(--fd);font-size:clamp(2.6rem,5.5vw,4.2rem);line-height:1.15;letter-spacing:-.03em;margin-bottom:22px;max-width:720px;margin-left:auto;margin-right:auto;font-weight:700}
-.hero h1 .word{display:inline-block;opacity:0;transform:translateY(30px);animation:wordIn .6s cubic-bezier(.16,1,.3,1) forwards}
-@keyframes wordIn{to{opacity:1;transform:translateY(0)}}
-.hero h1 em{font-style:italic;font-weight:500;color:var(--ac)}
-.hero-sub{font-size:1.15rem;color:var(--tx-m);max-width:520px;margin:0 auto 44px;line-height:1.7;font-weight:300;opacity:0;animation:fadeUp .7s 1.2s cubic-bezier(.16,1,.3,1) forwards}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.card-list{background:#fff;border:1px solid #e7e5e4;border-radius:12px;overflow:hidden}
+.card-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f5f5f4;cursor:pointer;transition:background .15s}
+.card-item:hover{background:#fafaf9}
+.card-item:last-child{border-bottom:none}
+.card-item.active{background:#ecfdf5;border-left:3px solid #059669}
+.card-name{font-size:13px;font-weight:500;color:#1c1917}
+.card-meta{font-size:11px;color:#a8a29e;margin-top:2px;display:flex;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500}
+.badge-new{background:#eff6ff;color:#2563eb}
+.badge-composed{background:#fffbeb;color:#b45309}
+.badge-approved{background:#ecfdf5;color:#047857}
+.badge-sent{background:#f0fdf4;color:#16a34a}
+.badge-replied{background:#faf5ff;color:#7c3aed}
+.badge-no_email{background:#f5f5f4;color:#a8a29e}
+.badge-send_error{background:#fef2f2;color:#dc2626}
 
-/* ── Form ── */
-.wf{display:flex;gap:10px;max-width:460px;margin:0 auto;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .7s 1.4s cubic-bezier(.16,1,.3,1) forwards}
-.wf input{flex:1;min-width:220px;padding:15px 18px;background:var(--bg-c);border:1px solid var(--bd);border-radius:12px;color:var(--tx);font-family:var(--fb);font-size:.95rem;outline:none;transition:border-color .3s,box-shadow .3s;box-shadow:var(--ss)}
-.wf input::placeholder{color:var(--tx-mu)}
-.wf input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-g)}
-.wf button{padding:15px 30px;background:var(--bg-d);color:var(--bg);border:none;border-radius:12px;font-family:var(--fb);font-size:.95rem;font-weight:500;cursor:pointer;transition:all .3s;white-space:nowrap}
-.wf button:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,23,21,.18)}
-.fn{width:100%;text-align:center;font-size:.8rem;color:var(--tx-mu);margin-top:10px}
-.fs{display:none;text-align:center;padding:20px;color:var(--ac);font-size:1.05rem;font-weight:500}
-.sl{font-size:.82rem;color:var(--ac);font-weight:500;margin-top:6px;width:100%;text-align:center}
+.detail{background:#fff;border:1px solid #e7e5e4;border-radius:12px;position:sticky;top:16px}
+.detail-header{padding:16px;border-bottom:1px solid #f5f5f4}
+.detail-name{font-size:15px;font-weight:600}
+.detail-addr{font-size:12px;color:#a8a29e;margin-top:2px}
+.detail-info{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.detail-row{font-size:12px;color:#78716c;display:flex;align-items:center;gap:6px}
+.detail-actions{padding:12px 16px;border-bottom:1px solid #f5f5f4;display:flex;gap:6px;flex-wrap:wrap}
+.detail-email{padding:16px}
+.detail-email label{display:block;font-size:11px;font-weight:500;color:#a8a29e;margin-bottom:4px}
+.detail-email input,.detail-email textarea{width:100%;padding:8px 12px;border:1px solid #e7e5e4;border-radius:8px;font-size:13px;outline:none;resize:none}
+.detail-email input:focus,.detail-email textarea:focus{border-color:#059669}
+.detail-empty{padding:40px;text-align:center;color:#a8a29e;font-size:13px}
+.empty{padding:48px;text-align:center;color:#a8a29e}
 
-/* ══════════════════════════════════
-   iPhone Mockup + Split Section
-   ══════════════════════════════════ */
-.phone-section{
-  padding:60px 0 80px;
-  overflow:hidden;
-}
-.phone-split{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:64px;
-  max-width:1080px;
-  margin:0 auto;
-  padding:0 24px;
-}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding-top:80px}
+.modal{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);width:100%;max-width:520px;margin:0 16px;overflow:hidden}
+.modal-head{padding:16px;border-bottom:1px solid #f5f5f4}
+.modal-head h2{font-size:15px;font-weight:600}
+.modal-head p{font-size:12px;color:#a8a29e;margin-top:2px}
+.modal-body{max-height:400px;overflow-y:auto}
+.modal-foot{padding:12px 16px;border-top:1px solid #f5f5f4;display:flex;justify-content:flex-end;gap:8px}
+.search-row{display:flex;gap:8px;margin-top:10px}
+.search-row input{flex:1;padding:8px 12px;border:1px solid #e7e5e4;border-radius:8px;font-size:13px;outline:none}
+.result-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #fafaf9}
+.result-item:hover{background:#fafaf9}
+.result-name{font-size:13px;font-weight:500}
+.result-addr{font-size:11px;color:#a8a29e}
+.form-stack{padding:16px;display:flex;flex-direction:column;gap:10px}
+.form-stack input{padding:8px 12px;border:1px solid #e7e5e4;border-radius:8px;font-size:13px;outline:none}
 
-/* Phone wrapper — starts centered, slides left */
-.phone-wrap{
-  flex-shrink:0;
-  transition: transform 1s cubic-bezier(.16,1,.3,1), opacity .8s ease;
-}
-
-/* iPhone 17 frame */
-.iphone{
-  width:280px;
-  height:572px;
-  background:#111;
-  border-radius:40px;
-  padding:10px;
-  position:relative;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.1),
-    0 20px 60px rgba(0,0,0,.25),
-    0 2px 8px rgba(0,0,0,.15),
-    inset 0 0 0 1px rgba(255,255,255,.05);
-}
-/* Dynamic Island */
-.iphone::before{
-  content:'';
-  position:absolute;
-  top:12px;left:50%;transform:translateX(-50%);
-  width:90px;height:24px;
-  background:#000;border-radius:20px;
-  z-index:10;
-}
-/* Screen area */
-.iphone-screen{
-  width:100%;height:100%;
-  border-radius:30px;
-  overflow:hidden;
-  background:#f0ebe3;
-  position:relative;
-}
-
-/* Chat inside phone */
-.ph-chat-header{
-  padding:38px 14px 10px;
-  background:var(--bg-w);
-  border-bottom:1px solid var(--bd);
-  display:flex;align-items:center;gap:10px;
-}
-.ph-avatar{
-  width:32px;height:32px;background:var(--ac);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;
-}
-.ph-name{font-weight:600;font-size:.78rem;color:var(--tx)}
-.ph-status{font-size:.65rem;color:var(--ac)}
-.ph-chat-body{
-  padding:12px;display:flex;flex-direction:column;gap:8px;
-  height:calc(100% - 74px);overflow-y:auto;
-}
-.pm{
-  max-width:86%;padding:7px 11px;border-radius:12px;
-  font-size:.73rem;line-height:1.45;
-  opacity:0;transform:translateY(10px) scale(.95);
-  transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1);
-}
-.pm.show{opacity:1;transform:translateY(0) scale(1)}
-.pm-g{background:#d9fdd3;align-self:flex-end;border-bottom-right-radius:3px;color:#111b21}
-.pm-b{background:#fff;align-self:flex-start;border-bottom-left-radius:3px;color:#111b21;box-shadow:0 1px 1px rgba(0,0,0,.05)}
-.pm .t{display:block;font-size:.58rem;color:#999;margin-top:2px;text-align:right}
-.typing-ph{
-  align-self:flex-start;background:#fff;border-radius:12px;border-bottom-left-radius:3px;
-  padding:9px 14px;display:flex;gap:3px;opacity:0;transition:opacity .3s;
-  box-shadow:0 1px 1px rgba(0,0,0,.05);
-}
-.typing-ph.show{opacity:1}
-.typing-ph span{width:5px;height:5px;background:#bbb;border-radius:50%;animation:td 1.4s infinite}
-.typing-ph span:nth-child(2){animation-delay:.2s}
-.typing-ph span:nth-child(3){animation-delay:.4s}
-@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-3px);opacity:1}}
-
-/* Side text — starts hidden, fades in */
-.phone-text{
-  max-width:380px;
-}
-.phone-text > *{
-  opacity:0;
-  transform:translateX(30px);
-  transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
-}
-.phone-text > :nth-child(1){transition-delay:0s}
-.phone-text > :nth-child(2){transition-delay:.12s}
-.phone-text > :nth-child(3){transition-delay:.24s}
-.phone-text > :nth-child(4){transition-delay:.36s}
-.phone-text.v > *{opacity:1;transform:translateX(0)}
-.phone-text h3{
-  font-family:var(--fd);font-size:1.6rem;font-weight:700;
-  letter-spacing:-.02em;margin-bottom:12px;line-height:1.25;
-}
-.phone-text p{
-  color:var(--tx-m);font-size:.95rem;line-height:1.7;font-weight:300;margin-bottom:16px;
-}
-.phone-text .tag{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:5px 14px;background:var(--ac-g);border:1px solid rgba(45,106,79,.12);
-  border-radius:100px;font-size:.78rem;color:var(--ac);font-weight:500;
-}
-
-/* ── Stats ── */
-.stats-bar{display:flex;justify-content:center;gap:48px;padding:48px 0;flex-wrap:wrap}
-.stat{text-align:center}
-.stat-number{font-family:var(--fd);font-size:2.2rem;font-weight:700;color:var(--tx);letter-spacing:-.03em}
-.stat-label{font-size:.85rem;color:var(--tx-mu);margin-top:2px}
-.divider{height:1px;background:var(--bd);max-width:200px;margin:0 auto}
-
-/* ── Active in bar ── */
-.active-in{
-  text-align:center;padding:32px 0 0;
-}
-.active-in-label{
-  font-size:.76rem;color:var(--tx-mu);text-transform:uppercase;
-  letter-spacing:.1em;font-weight:500;margin-bottom:14px;
-}
-.active-cities{
-  display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
-  max-width:600px;margin:0 auto;
-}
-.active-city{
-  padding:5px 14px;background:var(--bg-c);border:1px solid var(--bd);
-  border-radius:100px;font-size:.78rem;color:var(--tx-m);font-weight:400;
-  white-space:nowrap;transition:all .3s;
-}
-.active-city:hover{border-color:var(--ac);color:var(--ac)}
-
-/* ── Section titles ── */
-.st{font-family:var(--fd);font-size:clamp(1.8rem,3.5vw,2.6rem);text-align:center;margin-bottom:8px;letter-spacing:-.02em;font-weight:700}
-.ss{text-align:center;color:var(--tx-m);margin-bottom:48px;font-size:1.05rem;font-weight:300}
-
-/* ── Testimonials ── */
-.social-proof{padding:80px 0}
-.testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.testimonial{background:var(--bg-c);border:1px solid var(--bd);border-radius:16px;padding:28px 24px;box-shadow:var(--ss);transition:all .4s cubic-bezier(.16,1,.3,1)}
-.testimonial:hover{box-shadow:var(--sm);transform:translateY(-4px)}
-.t-stars{color:#e8b931;font-size:.9rem;letter-spacing:2px;margin-bottom:14px}
-.t-text{font-size:.93rem;color:var(--tx-m);line-height:1.65;margin-bottom:20px;font-style:italic;font-weight:300}
-.t-author{display:flex;align-items:center;gap:12px}
-.t-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:600;color:#fff}
-.t-name{font-weight:600;font-size:.88rem}
-.t-role{font-size:.78rem;color:var(--tx-mu)}
-.bt{display:inline-block;background:var(--ac-g);color:var(--ac);font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:100px;margin-left:6px;font-style:normal;letter-spacing:.04em;text-transform:uppercase}
-
-/* ── Features ── */
-.features{padding:80px 0}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.fc{background:var(--bg-c);border:1px solid var(--bd);border-radius:16px;padding:30px 24px;box-shadow:var(--ss);transition:all .4s cubic-bezier(.16,1,.3,1)}
-.fc:hover{box-shadow:var(--sm);border-color:var(--bd-d);transform:translateY(-4px)}
-.fi{width:44px;height:44px;background:var(--ac-gs);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:18px;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
-.fc:hover .fi{transform:scale(1.12) rotate(-3deg)}
-.fc h3{font-size:1.05rem;font-weight:600;margin-bottom:8px}
-.fc p{color:var(--tx-m);font-size:.88rem;line-height:1.6;font-weight:300}
-
-/* ── Steps ── */
-.how{padding:60px 0 80px}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;counter-reset:step}
-.step{text-align:center;counter-increment:step}
-.step::before{content:counter(step);display:flex;width:50px;height:50px;background:var(--bg-d);color:var(--bg);font-family:var(--fd);font-size:1.3rem;border-radius:50%;align-items:center;justify-content:center;margin:0 auto 18px;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
-.step:hover::before{transform:scale(1.1)}
-.step h3{font-size:1.05rem;font-weight:600;margin-bottom:8px}
-.step p{color:var(--tx-m);font-size:.88rem;max-width:260px;margin:0 auto;font-weight:300}
-
-/* ── Pricing ── */
-.pricing{padding:80px 0}
-.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
-.pc{background:var(--bg-c);border:1px solid var(--bd);border-radius:16px;padding:32px 24px;position:relative;box-shadow:var(--ss);transition:all .4s cubic-bezier(.16,1,.3,1)}
-.pc:hover{box-shadow:var(--sm);transform:translateY(-4px)}
-.pc.pop{border-color:var(--bg-d);border-width:2px;box-shadow:var(--sm)}
-.pc.pop::before{content:'Empfohlen';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--bg-d);color:var(--bg);padding:4px 16px;border-radius:100px;font-size:.76rem;font-weight:600}
-.pc h3{font-family:var(--fd);font-size:1.3rem;margin-bottom:6px;font-weight:700}
-.pa{font-size:2.4rem;font-weight:300;letter-spacing:-.03em;margin-bottom:2px}
-.pa span{font-size:.95rem;color:var(--tx-mu)}
-.pa-free{
-  font-size:2.4rem;font-weight:300;letter-spacing:-.03em;
-  color:var(--ac);margin-bottom:0;
-}
-.pa-strike{
-  font-size:1.1rem;color:var(--tx-mu);
-  text-decoration:line-through;
-  text-decoration-color:rgba(220,80,60,.5);
-  text-decoration-thickness:2px;
-  margin-bottom:2px;font-weight:300;
-}
-.pa-trial{
-  display:inline-block;padding:3px 10px;
-  background:var(--ac-g);border:1px solid rgba(45,106,79,.15);
-  border-radius:100px;font-size:.72rem;color:var(--ac);
-  font-weight:600;margin-bottom:6px;letter-spacing:.02em;
-}
-.pp{color:var(--tx-mu);font-size:.82rem;margin-bottom:22px}
-.pf{list-style:none;margin-bottom:24px}
-.pf li{padding:6px 0;font-size:.88rem;color:var(--tx-m);display:flex;align-items:flex-start;gap:10px;line-height:1.4}
-.pf li::before{content:'✓';color:var(--ac);font-weight:700;flex-shrink:0;margin-top:1px}
-.pb{display:block;width:100%;padding:13px;text-align:center;border-radius:12px;font-family:var(--fb);font-size:.92rem;font-weight:500;cursor:pointer;transition:all .3s;text-decoration:none}
-.pb-o{background:transparent;border:1px solid var(--bd);color:var(--tx)}
-.pb-o:hover{border-color:var(--bg-d);background:var(--bg-w)}
-.pb-s{background:var(--bg-d);border:1px solid var(--bg-d);color:var(--bg)}
-.pb-s:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,23,21,.18)}
-
-/* ── Final CTA ── */
-.final-cta{padding:64px 24px;margin:40px auto 80px;background:var(--bg-d);border-radius:24px;text-align:center;max-width:1080px;overflow:hidden;position:relative}
-.final-cta::before{content:'';position:absolute;top:-50%;right:-30%;width:500px;height:500px;background:radial-gradient(circle,rgba(45,106,79,.12) 0%,transparent 70%);border-radius:50%;pointer-events:none}
-.final-cta h2{font-family:var(--fd);font-size:clamp(1.8rem,3.5vw,2.5rem);margin-bottom:12px;font-weight:700;color:#faf7f2;position:relative}
-.final-cta p{color:#a8a29e;font-size:1.05rem;margin-bottom:32px;max-width:460px;margin-left:auto;margin-right:auto;font-weight:300;position:relative}
-.final-cta .wf input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#faf7f2}
-.final-cta .wf input::placeholder{color:#78716c}
-.final-cta .wf input:focus{border-color:rgba(255,255,255,.4);box-shadow:0 0 0 3px rgba(255,255,255,.06)}
-.final-cta .wf button{background:#faf7f2;color:var(--bg-d)}
-.final-cta .wf button:hover{background:#fff;box-shadow:0 8px 28px rgba(250,247,242,.2)}
-.final-cta .fn{color:#78716c}.final-cta .sl{color:#a8a29e}
-
-/* ── Gen Z Section ── */
-.genz{
-  padding:80px 24px;margin:0 auto;
-  background:var(--bg-d);position:relative;overflow:hidden;
-}
-.genz::before{
-  content:'';position:absolute;top:-40%;left:-20%;
-  width:600px;height:600px;
-  background:radial-gradient(circle,rgba(45,106,79,.1) 0%,transparent 70%);
-  border-radius:50%;pointer-events:none;
-}
-.genz::after{
-  content:'';position:absolute;bottom:-30%;right:-15%;
-  width:400px;height:400px;
-  background:radial-gradient(circle,rgba(245,158,11,.06) 0%,transparent 70%);
-  border-radius:50%;pointer-events:none;
-}
-.genz-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:64px;position:relative}
-.genz-data{flex:1}
-.genz-big{
-  font-family:var(--fd);font-size:clamp(4rem,10vw,7rem);
-  font-weight:700;line-height:1;letter-spacing:-.04em;
-  color:rgba(255,255,255,.06);position:absolute;
-  top:-20px;left:-10px;pointer-events:none;user-select:none;
-}
-.genz-label{
-  display:inline-block;padding:5px 14px;
-  background:rgba(45,106,79,.15);border:1px solid rgba(45,106,79,.25);
-  border-radius:100px;font-size:.78rem;color:#40916c;
-  font-weight:500;margin-bottom:24px;letter-spacing:.03em;
-}
-.genz h2{
-  font-family:var(--fd);font-size:clamp(1.6rem,3vw,2.3rem);
-  font-weight:700;color:#faf7f2;line-height:1.2;
-  margin-bottom:16px;letter-spacing:-.02em;
-}
-.genz h2 em{font-style:italic;color:#40916c}
-.genz-desc{color:#a8a29e;font-size:.98rem;line-height:1.7;font-weight:300;margin-bottom:32px;max-width:500px}
-.genz-stats{display:flex;gap:32px;flex-wrap:wrap}
-.genz-stat{text-align:left}
-.genz-stat-num{
-  font-family:var(--fd);font-size:2rem;font-weight:700;
-  color:#faf7f2;letter-spacing:-.02em;line-height:1.2;
-}
-.genz-stat-txt{font-size:.8rem;color:#78716c;margin-top:2px;max-width:140px;line-height:1.4}
-.genz-visual{flex-shrink:0;position:relative}
-.genz-circle{
-  width:220px;height:220px;border-radius:50%;
-  border:2px solid rgba(255,255,255,.06);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;
-}
-.genz-circle::before{
-  content:'';position:absolute;inset:-8px;border-radius:50%;
-  border:1px dashed rgba(45,106,79,.3);
-  animation:spinSlow 30s linear infinite;
-}
-@keyframes spinSlow{to{transform:rotate(360deg)}}
-.genz-pct{font-family:var(--fd);font-size:3.2rem;font-weight:700;color:#faf7f2;line-height:1}
-.genz-pct-label{font-size:.82rem;color:#78716c;margin-top:4px;text-align:center;max-width:120px;line-height:1.3}
-.genz-source{font-size:.72rem;color:#57534e;margin-top:24px;font-style:italic}
-@media(max-width:768px){
-  .genz-inner{flex-direction:column;text-align:center;gap:40px}
-  .genz-stats{justify-content:center}
-  .genz-stat{text-align:center}
-  .genz-stat-txt{margin-left:auto;margin-right:auto}
-  .genz-desc{margin-left:auto;margin-right:auto}
-  .genz-big{font-size:4rem;top:-10px;left:50%;transform:translateX(-50%)}
-}
-
-footer{padding:28px 0;border-top:1px solid var(--bd);text-align:center;color:var(--tx-mu);font-size:.82rem}
-footer a{color:var(--tx-m);text-decoration:none;margin:0 12px;transition:color .2s}
-footer a:hover{color:var(--tx)}
+.toast{position:fixed;top:16px;right:16px;padding:10px 16px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:10px;font-size:13px;font-weight:500;z-index:100;transition:opacity .3s}
 
 @media(max-width:768px){
-  .hero{padding:56px 0 40px}
-  .features-grid,.pg,.steps,.testimonials{grid-template-columns:1fr;max-width:400px;margin-left:auto;margin-right:auto}
-  .stats-bar{gap:32px}
-  .wf{flex-direction:column;align-items:stretch}.wf input{min-width:unset}
-  .final-cta{margin:40px 16px 60px}
-  .nav-l{display:none}
-  .phone-split{flex-direction:column;gap:32px;text-align:center}
-  .phone-text{max-width:100%;text-align:center}
-  .phone-text > *{transform:translateY(20px)!important}
-  .phone-text.v > *{transform:translateY(0)!important}
-  .iphone{width:240px;height:490px;border-radius:34px}
-  .iphone::before{width:76px;height:20px;top:10px}
-  .iphone-screen{border-radius:26px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .main{flex-direction:column}
+  .detail-col{width:100%}
 }
 </style>
 </head>
 <body>
-<div class="progress-bar" id="progressBar"></div>
-<div class="beta-bar"><strong>Geschlossene Beta</strong> — Nur noch <span id="spotsCount">12</span> Plätze in dieser Runde · 🇩🇪 🇦🇹 🇨🇭</div>
 
-<div class="container">
-<nav>
-  <a href="#" class="logo">Gastro<span>Bot</span></a>
-  <div class="nav-r"><a href="#features" class="nav-l">Funktionen</a><a href="#pricing" class="nav-l">Preise</a><a href="#wc" class="cta-n">Beta-Zugang sichern</a></div>
-</nav>
-
-<section class="hero">
-  <div class="hero-badge"><span class="dot"></span> Geschlossene Beta · 23 Restaurants in DE, AT & CH testen bereits</div>
-  <h1 id="heroTitle"></h1>
-  <p class="hero-sub">GastroBot beantwortet Gästefragen, nimmt Reservierungen an und bringt Stammgäste zurück — über WhatsApp, 24/7, ohne zusätzliches Personal.</p>
-  <div id="wc">
-    <form class="wf" id="wf1">
-      <input type="email" placeholder="Ihre geschäftliche E-Mail" required id="ei">
-      <button type="submit">Beta-Zugang anfragen</button>
-      <div class="sl">⬤ 12 von 35 Plätzen noch frei</div>
-      <div class="fn">Kostenlos während der Beta · Keine Kreditkarte nötig</div>
-    </form>
-    <div class="fs" id="fs1">✓ Vielen Dank! Wir prüfen Ihre Anfrage und melden uns innerhalb von 24 Stunden.</div>
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">G</div>
+    <div><h1>GastroBot Outreach</h1><p>Restaurant-Akquise Dashboard</p></div>
   </div>
-</section>
+  <div class="header-actions">
+    <button class="btn btn-green" onclick="openModal('search')">&#x1F50E; Suchen</button>
+    <button class="btn btn-dark" onclick="openModal('add')">+ Manuell</button>
+  </div>
 </div>
 
-<!-- ══ Phone Section ══ -->
-<section class="phone-section" id="phoneSection">
-  <div class="phone-split">
-    <div class="phone-wrap" id="phoneWrap">
-      <div class="iphone">
-        <div class="iphone-screen">
-          <div class="ph-chat-header">
-            <div class="ph-avatar">🍽</div>
-            <div><div class="ph-name">Trattoria da Mario</div><div class="ph-status">● GastroBot aktiv</div></div>
-          </div>
-          <div class="ph-chat-body" id="chatBody">
-            <div class="pm pm-g">Hallo! Haben Sie am Samstag einen Tisch für 4?<span class="t">19:42</span></div>
-            <div class="typing-ph" id="tp1"><span></span><span></span><span></span></div>
-            <div class="pm pm-b">Guten Abend! 😊 Ja, am Samstag haben wir Plätze. Möchten Sie um 18:00, 19:30 oder 20:30 Uhr kommen?<span class="t">19:42</span></div>
-            <div class="pm pm-g">19:30 bitte! Gibt es vegetarische Optionen?<span class="t">19:43</span></div>
-            <div class="typing-ph" id="tp2"><span></span><span></span><span></span></div>
-            <div class="pm pm-b">Reservierung bestätigt: 4 Personen, Sa. 19:30 ✓ Wir haben 6 vegetarische Gerichte — z.B. Gnocchi und Parmigiana. Bis Samstag!<span class="t">19:43</span></div>
-            <div class="pm pm-g">Super, danke! 🙌<span class="t">19:44</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="stats" id="statsBar"></div>
 
-    <div class="phone-text" id="phoneText">
-      <h3>So erlebt Ihr Gast<br>den GastroBot</h3>
-      <p>Keine App, kein Login, kein Warten. Ihr Gast schreibt einfach eine WhatsApp-Nachricht — und bekommt in Sekunden eine freundliche, präzise Antwort. Reservierung bestätigt, Allergen-Frage beantwortet, Gast glücklich.</p>
-      <p style="margin-bottom:20px">Ihr Team merkt davon nichts — außer, dass das Telefon seltener klingelt und mehr Tische gebucht sind.</p>
-      <div class="tag">✦ Durchschn. Antwortzeit unter 8 Sekunden</div>
+<div class="main">
+  <div class="list-col">
+    <div class="filters" id="filters"></div>
+    <div class="card-list" id="cardList"></div>
+  </div>
+  <div class="detail-col">
+    <div class="detail" id="detailPanel">
+      <div class="detail-empty">Restaurant links auswaehlen</div>
     </div>
   </div>
-</section>
-
-<!-- ══ Gen Z Section ══ -->
-<section class="genz" id="genzSection">
-  <div class="genz-inner">
-    <div class="genz-data rv">
-      <div class="genz-big">GEN Z</div>
-      <div class="genz-label rv rv-d1">↗ Die Zukunft Ihrer Gäste</div>
-      <h2 class="rv rv-d2">12,3 Millionen potenzielle Gäste,<br>die <em>niemals</em> anrufen werden</h2>
-      <p class="genz-desc rv rv-d3">Die Generation Z (14–29 Jahre) macht 14,6% der deutschen Bevölkerung aus — und wird 2026 zur größten Käufergeneration. Das Problem: 9 von 10 hassen Telefonate. Jeder vierte ignoriert Anrufe grundsätzlich. 57% gehen nicht mal für ihre Eltern ran. Aber sie alle haben WhatsApp.</p>
-      <div class="genz-stats">
-        <div class="genz-stat rv rv-d1">
-          <div class="genz-stat-num" data-target="90" data-suffix="%" data-genz="true">0</div>
-          <div class="genz-stat-txt">der Gen Z vermeiden Telefonate</div>
-        </div>
-        <div class="genz-stat rv rv-d2">
-          <div class="genz-stat-num" data-target="31" data-suffix="%" data-genz="true">0</div>
-          <div class="genz-stat-txt">bevorzugen WhatsApp als Kanal Nr. 1</div>
-        </div>
-        <div class="genz-stat rv rv-d3">
-          <div class="genz-stat-num" data-target="30" data-suffix="%" data-genz="true">0</div>
-          <div class="genz-stat-txt">des Bruttoeinkommens in DE — Tendenz steigend</div>
-        </div>
-      </div>
-      <p class="genz-source rv rv-d3">Quellen: Sky Mobile Research, Fox News / BankMyCell, Doofinder Gen Z Report 2026</p>
-    </div>
-    <div class="genz-visual rv-s">
-      <div class="genz-circle">
-        <div class="genz-pct" data-target="26" data-suffix="%" data-genz="true">0</div>
-        <div class="genz-pct-label">ignorieren Anrufe grundsätzlich</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="container">
-  <div class="stats-bar rv">
-    <div class="stat"><div class="stat-number" data-target="23" data-suffix="">0</div><div class="stat-label">Restaurants in der Beta</div></div>
-    <div class="stat"><div class="stat-number" data-target="1840" data-suffix="+">0</div><div class="stat-label">Reservierungen verarbeitet</div></div>
-    <div class="stat"><div class="stat-number" data-prefix="<" data-target="8" data-suffix=" Sek.">0</div><div class="stat-label">Durchschn. Antwortzeit</div></div>
-    <div class="stat"><div class="stat-number" data-target="4.9" data-suffix=" ★" data-decimal="true">0</div><div class="stat-label">Bewertung der Beta-Tester</div></div>
-  </div>
-  <div class="divider rv"></div>
-
-  <div class="active-in rv">
-    <div class="active-in-label">Bereits aktiv in</div>
-    <div class="active-cities">
-      <span class="active-city">🇩🇪 Stuttgart</span>
-      <span class="active-city">🇩🇪 München</span>
-      <span class="active-city">🇩🇪 Konstanz</span>
-      <span class="active-city">🇩🇪 Frankfurt</span>
-      <span class="active-city">🇦🇹 Wien</span>
-      <span class="active-city">🇨🇭 Zürich</span>
-    </div>
-  </div>
-
-  <section class="social-proof">
-    <h2 class="st rv">Das sagen Gastronomen aus der Beta</h2>
-    <p class="ss rv rv-d1">Ungeschönte Meinungen von Restaurantbesitzern, die GastroBot seit Wochen im Einsatz haben.</p>
-    <div class="testimonials">
-      <div class="testimonial rv rv-d1"><div class="t-stars">★★★★★</div><div class="t-text">„Am Anfang dachte ich: Braucht kein Mensch. Dann hat der Bot am ersten Freitagabend 11 Reservierungen angenommen, während ich in der Küche stand. Seitdem läuft er durch — auch an meinem freien Tag."</div><div class="t-author"><div class="t-av" style="background:#2d6a4f">M</div><div><div class="t-name">Marco P. <span class="bt">Beta</span></div><div class="t-role">Italienisches Restaurant · Stuttgart</div></div></div></div>
-      <div class="testimonial rv rv-d2"><div class="t-stars">★★★★☆</div><div class="t-text">„Für Allergen-Fragen ist der Bot super — da hatten wir früher echte Probleme. Einziger Punkt: Bei sehr speziellen Wünschen muss man manuell übernehmen. Aber das Team hat mir gesagt, da kommt noch was."</div><div class="t-author"><div class="t-av" style="background:#7c4a2d">L</div><div><div class="t-name">Lisa M. <span class="bt">Beta</span></div><div class="t-role">Wirtshaus · Bodenseeregion</div></div></div></div>
-      <div class="testimonial rv rv-d3"><div class="t-stars">★★★★★</div><div class="t-text">„Wir sind ein kleines Lokal in Wien und waren überrascht, dass es auf Deutsch UND Englisch funktioniert. Touristen buchen jetzt über WhatsApp statt über TripAdvisor — das spart uns die Provision."</div><div class="t-author"><div class="t-av" style="background:#4a5c6a">F</div><div><div class="t-name">Florian W. <span class="bt">Beta</span></div><div class="t-role">Gasthaus · Wien</div></div></div></div>
-    </div>
-  </section>
-
-  <section class="features" id="features">
-    <h2 class="st rv">Alles, was Ihr Restaurant braucht</h2>
-    <p class="ss rv rv-d1">Ein KI-Assistent, der Ihr Team entlastet — nicht ersetzt.</p>
-    <div class="features-grid">
-      <div class="fc rv rv-d1"><div class="fi">📅</div><h3>Intelligente Reservierungen</h3><p>Gäste buchen per WhatsApp — der Bot prüft Verfügbarkeit, bestätigt sofort und pflegt alles in Ihr Dashboard ein.</p></div>
-      <div class="fc rv rv-d2"><div class="fi">🥗</div><h3>Menü & Allergene</h3><p>Fragen zu Zutaten, Allergenen und vegetarischen Optionen werden sofort und korrekt beantwortet.</p></div>
-      <div class="fc rv rv-d3"><div class="fi">🌙</div><h3>24/7 erreichbar</h3><p>Auch um 23 Uhr oder am Feiertag. Kein verpasster Anruf, keine unbeantwortete Nachricht.</p></div>
-      <div class="fc rv rv-d1"><div class="fi">⭐</div><h3>Bewertungen sammeln</h3><p>Nach dem Besuch bittet der Bot dezent um eine Google-Bewertung. Mehr Sterne, mehr Gäste.</p></div>
-      <div class="fc rv rv-d2"><div class="fi">📊</div><h3>Live-Dashboard</h3><p>Alle Reservierungen, Gespräche und Statistiken auf einen Blick. Volle Kontrolle, jederzeit.</p></div>
-      <div class="fc rv rv-d3"><div class="fi">🤝</div><h3>Nahtlose Übergabe</h3><p>Bei Sonderwünschen leitet der Bot an Sie weiter. Mensch und KI — als Team.</p></div>
-    </div>
-  </section>
-
-  <section class="how">
-    <h2 class="st rv">In 3 Schritten startklar</h2>
-    <div class="steps">
-      <div class="step rv rv-d1"><h3>Menü & Zeiten eintragen</h3><p>Laden Sie Ihr Menü hoch und legen Sie Öffnungszeiten und Reservierungsregeln fest.</p></div>
-      <div class="step rv rv-d2"><h3>WhatsApp verbinden</h3><p>Verknüpfen Sie Ihre Nummer — in 10 Minuten ist Ihr Bot online und bereit.</p></div>
-      <div class="step rv rv-d3"><h3>Lehnen Sie sich zurück</h3><p>Der Bot übernimmt. Sie sehen alles im Dashboard und greifen ein, wann Sie möchten.</p></div>
-    </div>
-  </section>
-
-  <section class="pricing" id="pricing">
-    <h2 class="st rv">Faire Preise, die sich rechnen</h2>
-    <p class="ss rv rv-d1">Jeder Plan startet mit 14 Tagen kostenlos. Keine Kreditkarte, kein Risiko.</p>
-    <div class="pg">
-      <div class="pc rv rv-d1"><h3>Starter</h3><div class="pa-trial">14 Tage kostenlos</div><div class="pa-strike">€99 /Monat</div><div class="pa-free">€0</div><div class="pp">zzgl. MwSt. danach</div><ul class="pf"><li>Bis zu 100 Reservierungen/Monat</li><li>WhatsApp-Bot</li><li>Menü- & Allergen-Assistent</li><li>Reservierungs-Dashboard</li><li>E-Mail-Support</li></ul><a href="#wc" class="pb pb-o">Kostenlos starten</a></div>
-      <div class="pc pop rv rv-d2"><h3>Professional</h3><div class="pa-trial">14 Tage kostenlos</div><div class="pa-strike">€199 /Monat</div><div class="pa-free">€0</div><div class="pp">zzgl. MwSt. danach</div><ul class="pf"><li>Unbegrenzte Reservierungen</li><li>WhatsApp + Telegram</li><li>Automatische Erinnerungen</li><li>Google-Bewertungen sammeln</li><li>Marketing-Nachrichten (500/Mo.)</li><li>Prioritäts-Support</li></ul><a href="#wc" class="pb pb-s">Kostenlos starten</a></div>
-      <div class="pc rv rv-d3"><h3>Enterprise</h3><div class="pa">ab €399 <span>/Monat</span></div><div class="pp">zzgl. MwSt. · individuell anpassbar</div><ul class="pf"><li>Alles aus Professional</li><li>Mehrere Standorte</li><li>API-Zugang</li><li>Individuelle Anpassungen</li><li>Persönlicher Ansprechpartner</li></ul><a href="#wc" class="pb pb-o">Kontakt aufnehmen</a></div>
-    </div>
-  </section>
 </div>
 
-<div class="final-cta rv-s">
-  <h2>Bereit, keine Reservierung<br>mehr zu verpassen?</h2>
-  <p>Bewerben Sie sich für die geschlossene Beta. Kostenlos, unverbindlich — und Sie gehören zu den Ersten.</p>
-  <form class="wf" id="wf2" style="position:relative">
-    <input type="email" placeholder="Ihre geschäftliche E-Mail" required>
-    <button type="submit">Platz sichern</button>
-    <div class="sl">Nur noch wenige Plätze in dieser Runde</div>
-  </form>
-</div>
+<div id="modalContainer"></div>
+<div id="toastEl" class="toast" style="display:none"></div>
+<div id="map" style="display:none"></div>
 
-<footer class="rv"><div class="container"><p style="margin-bottom:8px">© 2026 GastroBot · Stuttgart · Deutschland, Österreich, Schweiz</p><a href="gastrobot-legal.html#impressum">Impressum</a><a href="gastrobot-legal.html#datenschutz">Datenschutz</a><a href="gastrobot-legal.html#agb">AGB</a></div></footer>
-
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCgOnKtRVOEHsrL8JhV5CfUDhfvBkKkGGI&libraries=places"></script>
 <script>
-// ── Hero words ──
-!function(){const t=document.getElementById('heroTitle'),w=['Ihr','Restaurant,','|||','<em>immer</em>','erreichbar'];let h='',i=0;w.forEach(x=>{if(x==='|||'){h+='<br>';return}h+=`<span class="word" style="animation-delay:${.7+i*.1}s">${x}</span> `;i++});t.innerHTML=h.trim()}();
+// Config
+const SB = "https://memprnwegkinoueakzgc.supabase.co";
+const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lbXBybndlZ2tpbm91ZWFremdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjQwOTYsImV4cCI6MjA5MTc0MDA5Nn0.6BkkxggDnCqvKgNWXQIldSzsD16Y1d-sKVleQMv6NHA";
+const SITE = "https://snoweye13.github.io/gastrobot";
+const H = {"Content-Type":"application/json","apikey":KEY,"Authorization":"Bearer "+KEY};
 
-// ── Scroll progress ──
-window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;document.getElementById('progressBar').style.width=(window.scrollY/h*100)+'%'},{passive:true});
+let prospects = [];
+let selected = null;
+let currentTab = "all";
 
-// ── Reveal observer ──
-const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');const counters=x.target.querySelectorAll('.stat-number[data-target],.genz-stat-num[data-genz],.genz-pct[data-genz]');if(counters.length)counters.forEach(animC)}})},{threshold:.15,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.rv,.rv-s').forEach(el=>obs.observe(el));
+// Toast
+function toast(msg) {
+  const el = document.getElementById("toastEl");
+  el.textContent = msg;
+  el.style.display = "block";
+  setTimeout(() => el.style.display = "none", 3000);
+}
 
-// ── Counter ──
-function animC(el){if(el.dataset.a)return;el.dataset.a='1';const tgt=parseFloat(el.dataset.target),dec=el.dataset.decimal==='true',pre=el.dataset.prefix||'',suf=el.dataset.suffix||'',dur=1600,st=performance.now();!function tick(now){const p=Math.min((now-st)/dur,1),ease=1-Math.pow(1-p,4),val=dec?(tgt*ease).toFixed(1):Math.floor(tgt*ease);el.textContent=pre+(tgt>=1000?Number(val).toLocaleString('de-DE'):val)+suf;if(p<1)requestAnimationFrame(tick)}(st)}
+// Load prospects
+async function load() {
+  let url = SB + "/rest/v1/prospects?select=*&order=created_at.desc&limit=200";
+  if (currentTab !== "all") url += "&status=eq." + currentTab;
+  try {
+    const r = await fetch(url, {headers:H});
+    const d = await r.json();
+    prospects = Array.isArray(d) ? d : [];
+  } catch(e) {
+    console.error("Load error:", e);
+    prospects = [];
+  }
+  renderStats();
+  renderList();
+}
 
-// ── Phone section: chat animation + split on scroll ──
-!function(){
-  const msgs=document.querySelectorAll('#chatBody .pm'),
-    tp1=document.getElementById('tp1'),tp2=document.getElementById('tp2'),
-    pText=document.getElementById('phoneText');
+// Render stats
+function renderStats() {
+  const all = prospects.length;
+  const email = prospects.filter(p => p.email).length;
+  const drafts = prospects.filter(p => p.status==="composed"||p.status==="approved").length;
+  const sent = prospects.filter(p => p.status==="sent").length;
+  document.getElementById("statsBar").innerHTML = [
+    {n:all,l:"Gesamt",c:"#57534e"},{n:email,l:"Mit Email",c:"#2563eb"},
+    {n:drafts,l:"Entwuerfe",c:"#b45309"},{n:sent,l:"Gesendet",c:"#16a34a"}
+  ].map(s => `<div class="stat"><div style="color:${s.c};font-size:20px">&#9679;</div><div><div class="stat-n">${s.n}</div><div class="stat-l">${s.l}</div></div></div>`).join("");
+}
 
-  const timeline=[
-    {t:500,a:()=>msgs[0].classList.add('show')},
-    {t:1200,a:()=>tp1.classList.add('show')},
-    {t:2000,a:()=>{tp1.classList.remove('show');msgs[1].classList.add('show')}},
-    {t:3200,a:()=>msgs[2].classList.add('show')},
-    {t:3800,a:()=>tp2.classList.add('show')},
-    {t:4800,a:()=>{tp2.classList.remove('show');msgs[3].classList.add('show')}},
-    {t:5200,a:()=>pText.classList.add('v')},
-    {t:6200,a:()=>msgs[4].classList.add('show')},
-  ];
+// Render filters
+function renderFilters() {
+  const tabs = [["all","Alle"],["new","Neu"],["composed","Entwurf"],["approved","Bereit"],["sent","Gesendet"],["replied","Antwort"]];
+  document.getElementById("filters").innerHTML = tabs.map(([k,v]) =>
+    `<button class="fil ${currentTab===k?"active":""}" onclick="setTab('${k}')">${v}</button>`
+  ).join("") + `<button class="btn-outline btn-sm" onclick="load()" style="margin-left:auto">&#x21BB; Refresh</button>`;
+}
 
-  let fired=false;
-  const pObs=new IntersectionObserver(e=>{
-    if(e[0].isIntersecting&&!fired){
-      fired=true;
-      timeline.forEach(({t,a})=>setTimeout(a,t));
+function setTab(t) { currentTab = t; renderFilters(); load(); }
+
+// Render list
+function renderList() {
+  const el = document.getElementById("cardList");
+  if (prospects.length === 0) {
+    el.innerHTML = '<div class="empty">Noch keine Restaurants.<br>Klicke oben auf Suchen oder Manuell.</div>';
+    return;
+  }
+  el.innerHTML = prospects.map(p => `
+    <div class="card-item ${selected&&selected.id===p.id?'active':''}" onclick="selectProspect('${p.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="card-name">${esc(p.name)} ${p.google_rating?'<span style="color:#f59e0b;font-size:11px">&#9733; '+p.google_rating+'</span>':''}</div>
+        <div class="card-meta">
+          ${p.city?'<span>'+esc(p.city)+'</span>':''}
+          ${p.email?'<span>'+esc(p.email)+'</span>':''}
+        </div>
+      </div>
+      <span class="badge badge-${p.status}">${badgeLabel(p.status)}</span>
+    </div>
+  `).join("");
+}
+
+function badgeLabel(s) {
+  return {new:"Neu",no_email:"Kein Email",composed:"Entwurf",approved:"Bereit",sent:"Gesendet",replied:"Antwort!",send_error:"Fehler"}[s]||s;
+}
+
+// Select prospect
+function selectProspect(id) {
+  selected = prospects.find(p => p.id === id) || null;
+  renderList();
+  renderDetail();
+}
+
+// Render detail panel
+function renderDetail() {
+  const el = document.getElementById("detailPanel");
+  if (!selected) {
+    el.innerHTML = '<div class="detail-empty">Restaurant links auswaehlen</div>';
+    return;
+  }
+  const p = selected;
+  let actions = '';
+
+  if (!p.email && p.website) actions += `<button class="btn btn-sm btn-blue" onclick="findEmail()">&#x1F50E; Email finden</button>`;
+  if (p.email && !p.composed_body) actions += `<button class="btn btn-sm btn-amber" onclick="compose()" id="composeBtn">&#x2728; Email generieren</button>`;
+  if (p.composed_body && p.status==="composed") actions += `<button class="btn btn-sm btn-emerald" onclick="approve()">&#x2713; Freigeben</button>`;
+  if (p.status==="approved") actions += `<button class="btn btn-sm btn-send" onclick="sendEmail()" id="sendBtn">&#x2709; Senden</button>`;
+  if (p.composed_body) actions += `<button class="btn btn-sm btn-regen" onclick="compose()">&#x21BB; Neu</button>`;
+  actions += `<button class="btn btn-sm btn-red" onclick="del('${p.id}')" style="margin-left:auto">&#x2715;</button>`;
+
+  let emailSection = '';
+  if (p.composed_body) {
+    emailSection = `
+      <div class="detail-email">
+        <label>Betreff</label>
+        <input id="editSubj" value="${esc(p.composed_subject||'')}" />
+        <label style="margin-top:10px">Nachricht</label>
+        <textarea id="editBody" rows="12">${esc(p.composed_body||'')}</textarea>
+        <button class="btn btn-dark btn-sm" onclick="saveEmail()" style="margin-top:8px;width:100%">Speichern</button>
+      </div>`;
+  } else {
+    emailSection = `<div class="detail-empty">${p.email ? 'Klicke Email generieren' : 'Zuerst Email finden oder eingeben'}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="detail-header">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div>
+          <div class="detail-name">${esc(p.name)}</div>
+          <div class="detail-addr">${esc(p.address||'')}</div>
+        </div>
+        <button class="btn-outline btn-sm" onclick="selected=null;renderList();renderDetail()">&#x2715;</button>
+      </div>
+      <div style="margin-top:8px"><span class="badge badge-${p.status}">${badgeLabel(p.status)}</span></div>
+      <div class="detail-info">
+        ${p.email?'<div class="detail-row">&#x2709; '+esc(p.email)+'</div>':''}
+        ${p.phone?'<div class="detail-row">&#x260E; '+esc(p.phone)+'</div>':''}
+        ${p.website?'<div class="detail-row"><a href="'+esc(p.website)+'" target="_blank" style="color:#059669;text-decoration:none">'+esc(p.website).substring(0,40)+'</a></div>':''}
+      </div>
+    </div>
+    <div class="detail-actions">${actions}</div>
+    ${emailSection}
+  `;
+}
+
+// PATCH helper
+async function patch(id, data) {
+  const r = await fetch(SB+"/rest/v1/prospects?id=eq."+id, {
+    method:"PATCH", headers:{...H,"Prefer":"return=minimal"}, body:JSON.stringify(data)
+  });
+  if (!r.ok) console.error("Patch error:", await r.text());
+}
+
+// Find email via Edge Function
+async function findEmail() {
+  if (!selected||!selected.website) return;
+  toast("Suche Email...");
+  try {
+    const r = await fetch(SB+"/functions/v1/outreach",{method:"POST",headers:H,body:JSON.stringify({action:"scrape_email",website:selected.website})});
+    const d = await r.json();
+    if (d.email) {
+      await patch(selected.id,{email:d.email});
+      toast("Email: "+d.email);
+    } else {
+      await patch(selected.id,{status:"no_email"});
+      toast("Kein Email gefunden");
     }
-  },{threshold:.25});
-  pObs.observe(document.getElementById('phoneSection'));
-}();
+  } catch(e) { toast("Fehler: "+e.message); }
+  await load();
+  selected = prospects.find(p=>p.id===selected.id);
+  renderDetail();
+}
 
-// ── Supabase config ──
-// ⚠️ ЗАМЕНИ на свои значения из Supabase Dashboard → Settings → API
-const SUPABASE_URL = 'https://memprnwegkinoueakzgc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lbXBybndlZ2tpbm91ZWFremdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjQwOTYsImV4cCI6MjA5MTc0MDA5Nn0.6BkkxggDnCqvKgNWXQIldSzsD16Y1d-sKVleQMv6NHA';
-
-async function submitWaitlist(email, formEl, successEl) {
-  const btn = formEl.querySelector('button');
-  const origText = btn.textContent;
-  btn.textContent = 'Wird gesendet...';
-  btn.disabled = true;
+// Compose via Claude API
+async function compose() {
+  if (!selected||!selected.email) return toast("Kein Email vorhanden");
+  const btn = document.getElementById("composeBtn");
+  if (btn) btn.textContent = "Generiert...";
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        email: email,
-        source: 'landing',
-        utm_source: new URLSearchParams(window.location.search).get('utm_source') || null,
-        utm_medium: new URLSearchParams(window.location.search).get('utm_medium') || null
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":"","anthropic-version":"2023-06-01"},
+      body:JSON.stringify({
+        model:"claude-haiku-4-5-20251001",max_tokens:500,
+        messages:[{role:"user",content:
+          "Du schreibst eine kurze Kaltakquise-Email an ein Restaurant.\n\n"+
+          "RESTAURANT: "+selected.name+"\nSTADT: "+(selected.city||"")+
+          "\nADRESSE: "+(selected.address||"")+"\nBEWERTUNG: "+(selected.google_rating||"N/A")+" Sterne"+
+          "\nWEBSITE: "+(selected.website||"Keine")+
+          "\n\nABSENDER: Oleh Horoshko, Entwickler von GastroBot - KI-WhatsApp-Assistent.\n"+
+          "ZIEL: Beta-Tester finden. 14 Tage kostenlos.\nLINK: "+SITE+
+          "\n\nREGELN:\n- 6-8 Saetze max, auf Deutsch\n- Persoenlicher Bezug zum Restaurant"+
+          "\n- Gen-Z-Argument: 90% rufen nicht an\n- Frage nach 10-Min-Gespraech"+
+          "\n- Unterschrift: Oleh Horoshko, +49 163 166 7220\n\nAntworte NUR mit dem Email-Body."
+        }]
       })
     });
-
-    if (res.ok || res.status === 201) {
-      formEl.style.display = 'none';
-      if (successEl) successEl.style.display = 'block';
-      else formEl.innerHTML = '<div class="fs" style="display:block;color:#faf7f2">✓ Vielen Dank! Wir prüfen Ihre Anfrage und melden uns innerhalb von 24 Stunden.</div>';
-    } else if (res.status === 409) {
-      // Duplicate email
-      formEl.style.display = 'none';
-      if (successEl) { successEl.textContent = '✓ Diese E-Mail ist bereits registriert. Wir melden uns bald!'; successEl.style.display = 'block'; }
-      else formEl.innerHTML = '<div class="fs" style="display:block;color:#faf7f2">✓ Diese E-Mail ist bereits registriert. Wir melden uns bald!</div>';
+    const d = await r.json();
+    const txt = d.content&&d.content[0]?d.content[0].text:null;
+    if (txt) {
+      const subj = "WhatsApp-Reservierungen fuer "+selected.name+" - kostenloser Test";
+      await patch(selected.id,{composed_subject:subj,composed_body:txt,status:"composed"});
+      toast("Email generiert");
     } else {
-      throw new Error('Server error');
+      toast("Generierung fehlgeschlagen");
     }
-  } catch (err) {
-    btn.textContent = origText;
-    btn.disabled = false;
-    alert('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.');
-    console.error('Waitlist error:', err);
+  } catch(e) { toast("Fehler: "+e.message); }
+
+  await load();
+  selected = prospects.find(p=>p.id===selected.id);
+  renderDetail();
+}
+
+// Save edited email
+async function saveEmail() {
+  if (!selected) return;
+  const subj = document.getElementById("editSubj").value;
+  const body = document.getElementById("editBody").value;
+  await patch(selected.id,{composed_subject:subj,composed_body:body});
+  toast("Gespeichert");
+  await load();
+  selected = prospects.find(p=>p.id===selected.id);
+  renderDetail();
+}
+
+// Approve
+async function approve() {
+  await saveEmail();
+  await patch(selected.id,{status:"approved"});
+  toast("Freigegeben");
+  await load();
+  selected = prospects.find(p=>p.id===selected.id);
+  renderDetail();
+}
+
+// Send via Edge Function
+async function sendEmail() {
+  if (!selected) return;
+  const btn = document.getElementById("sendBtn");
+  if (btn) btn.textContent = "Sendet...";
+  try {
+    const r = await fetch(SB+"/functions/v1/outreach",{method:"POST",headers:H,
+      body:JSON.stringify({action:"send_email",to:selected.email,subject:selected.composed_subject,body:selected.composed_body})
+    });
+    const d = await r.json();
+    if (d.success) {
+      await patch(selected.id,{status:"sent"});
+      toast("Gesendet an "+selected.email);
+    } else { toast("Fehler beim Senden"); }
+  } catch(e) { toast("Fehler: "+e.message); }
+  await load();
+  selected = prospects.find(p=>p.id===selected.id);
+  renderDetail();
+}
+
+// Delete
+async function del(id) {
+  await fetch(SB+"/rest/v1/prospects?id=eq."+id,{method:"DELETE",headers:H});
+  if (selected&&selected.id===id) selected=null;
+  toast("Geloescht");
+  await load();
+  renderDetail();
+}
+
+// Add manual
+async function addManual() {
+  const name = document.getElementById("addName").value;
+  const city = document.getElementById("addCity").value;
+  const website = document.getElementById("addWeb").value;
+  const email = document.getElementById("addEmail").value;
+  if (!name) return toast("Name ist Pflicht");
+
+  try {
+    const r = await fetch(SB+"/rest/v1/prospects",{
+      method:"POST",headers:{...H,"Prefer":"return=minimal"},
+      body:JSON.stringify({name, city:city||null, website:website||null, email:email||null, status:"new"})
+    });
+    if (r.ok) {
+      closeModal();
+      toast("Hinzugefuegt: "+name);
+      await load();
+    } else {
+      const err = await r.text();
+      console.error("Error:",r.status,err);
+      toast("Fehler: "+r.status);
+    }
+  } catch(e) { toast("Netzwerkfehler: "+e.message); }
+}
+
+// Search restaurants via Google Maps JS API
+async function searchPlaces() {
+  const cityName = document.getElementById("searchCity").value;
+  if (!cityName) return;
+  document.getElementById("searchBtn").textContent = "Sucht...";
+
+  try {
+    // Geocode city
+    const geocoder = new google.maps.Geocoder();
+    const geoResult = await new Promise((resolve, reject) => {
+      geocoder.geocode({address: cityName}, (results, status) => {
+        if (status === "OK" && results[0]) resolve(results[0].geometry.location);
+        else reject(new Error("Stadt nicht gefunden"));
+      });
+    });
+
+    // Init map + PlacesService
+    const mapEl = document.getElementById("map");
+    const map = new google.maps.Map(mapEl, {center: geoResult, zoom: 14});
+    const service = new google.maps.places.PlacesService(map);
+
+    // Nearby search for restaurants
+    const places = await new Promise((resolve, reject) => {
+      service.nearbySearch({
+        location: geoResult,
+        radius: 5000,
+        type: "restaurant"
+      }, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) resolve(results);
+        else reject(new Error("Keine Restaurants gefunden"));
+      });
+    });
+
+    // Get details for each (website, phone)
+    const detailed = [];
+    for (const place of places.slice(0, 20)) {
+      try {
+        const det = await new Promise((resolve, reject) => {
+          service.getDetails({
+            placeId: place.place_id,
+            fields: ["website", "formatted_phone_number", "url"]
+          }, (result, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) resolve(result);
+            else resolve({});
+          });
+        });
+        detailed.push({
+          name: place.name,
+          address: place.vicinity || "",
+          rating: place.rating || null,
+          website: det.website || "",
+          phone: det.formatted_phone_number || "",
+          google_maps_url: det.url || "",
+          google_place_id: place.place_id,
+        });
+      } catch(e) {
+        detailed.push({
+          name: place.name,
+          address: place.vicinity || "",
+          rating: place.rating || null,
+          website: "",
+          phone: "",
+          google_maps_url: "",
+          google_place_id: place.place_id,
+        });
+      }
+    }
+
+    toast(detailed.length + " Restaurants gefunden");
+    renderSearchResults(detailed);
+  } catch(e) {
+    toast("Fehler: " + e.message);
+  }
+  document.getElementById("searchBtn").textContent = "Suchen";
+}
+
+function renderSearchResults(results) {
+  document.getElementById("searchResults").innerHTML = results.length===0
+    ? '<div style="padding:24px;text-align:center;color:#a8a29e;font-size:13px">Keine Ergebnisse</div>'
+    : results.map((r,i) => `
+      <div class="result-item">
+        <div><div class="result-name">${esc(r.name)} ${r.rating?'<span style="color:#f59e0b;font-size:11px">&#9733; '+r.rating+'</span>':''}</div><div class="result-addr">${esc(r.address||'')}</div></div>
+        <button class="btn btn-sm btn-emerald" onclick="importResult(${i})">+</button>
+      </div>`).join("");
+  window._searchResults = results;
+}
+
+async function importResult(i) {
+  const r = window._searchResults[i];
+  if (!r) return;
+  const city = document.getElementById("searchCity").value;
+  await fetch(SB+"/rest/v1/prospects",{
+    method:"POST",headers:{...H,"Prefer":"return=minimal"},
+    body:JSON.stringify({...r,city:city,status:"new"})
+  });
+  window._searchResults.splice(i,1);
+  renderSearchResults(window._searchResults);
+  toast(r.name+" importiert");
+  load();
+}
+
+// Modals
+function openModal(type) {
+  const el = document.getElementById("modalContainer");
+  if (type==="search") {
+    el.innerHTML = `
+      <div class="modal-bg" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="modal-head">
+            <h2>Restaurants suchen</h2>
+            <p>Google Places API - max 20 Ergebnisse</p>
+            <div class="search-row">
+              <input id="searchCity" placeholder="Stadt, z.B. Stuttgart" onkeydown="if(event.key==='Enter')searchPlaces()" />
+              <button class="btn btn-dark btn-sm" id="searchBtn" onclick="searchPlaces()">Suchen</button>
+            </div>
+          </div>
+          <div class="modal-body" id="searchResults">
+            <div style="padding:24px;text-align:center;color:#a8a29e;font-size:13px">Stadt eingeben und Suchen klicken</div>
+          </div>
+          <div class="modal-foot"><button class="btn btn-outline btn-sm" onclick="closeModal()">Schliessen</button></div>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="modal-bg" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="modal-head"><h2>Restaurant manuell hinzufuegen</h2></div>
+          <div class="form-stack">
+            <input id="addName" placeholder="Name *" />
+            <input id="addCity" placeholder="Stadt" />
+            <input id="addWeb" placeholder="Website (https://...)" />
+            <input id="addEmail" placeholder="Email (optional)" />
+          </div>
+          <div class="modal-foot">
+            <button class="btn btn-outline btn-sm" onclick="closeModal()">Abbrechen</button>
+            <button class="btn btn-dark btn-sm" onclick="addManual()">Hinzufuegen</button>
+          </div>
+        </div>
+      </div>`;
   }
 }
 
-// Form 1 (Hero)
-document.getElementById('wf1').addEventListener('submit', function(e) {
-  e.preventDefault();
-  submitWaitlist(document.getElementById('ei').value, this, document.getElementById('fs1'));
-});
+function closeModal() { document.getElementById("modalContainer").innerHTML = ""; }
 
-// Form 2 (Footer CTA)
-document.getElementById('wf2').addEventListener('submit', function(e) {
-  e.preventDefault();
-  submitWaitlist(this.querySelector('input').value, this, null);
-});
+function esc(s) { if (!s) return ""; const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 
-document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){
-  const href=this.getAttribute('href');
-  if(href==='#wc'){
-    e.preventDefault();
-    const input=document.getElementById('ei');
-    input.scrollIntoView({behavior:'smooth',block:'center'});
-    setTimeout(()=>input.focus(),600);
-    return;
-  }
-  const t=document.querySelector(href);
-  if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}
-})});
+// Init
+renderFilters();
+load();
 </script>
 </body>
 </html>
