@@ -282,33 +282,56 @@ async function patch(id, data) {
   if (!r.ok) console.error("Patch error:", await r.text());
 }
 
-// Find email by scraping website via CORS proxy
+// Find email by scraping website
 async function findEmail() {
   if (!selected || !selected.website) return toast("Keine Website vorhanden");
-  toast("Suche Email auf " + selected.website + "...");
+  toast("Suche Email auf Website...");
 
-  const junk = ["wix.com","example.com","sentry.io","wordpress.com","w3.org","schema.org","googleapis.com","gstatic.com","facebook.com","instagram.com","twitter.com"];
-  const preferred = ["info@","kontakt@","reserv","restaurant@","post@","mail@","hallo@","office@","buchen@"];
+  const junk = ["wix.com","example.com","sentry.io","wordpress.com","w3.org","schema.org","googleapis.com","gstatic.com","facebook.com","instagram.com","twitter.com","google.com"];
+  const preferred = ["info@","kontakt@","reserv","restaurant@","post@","mail@","hallo@","office@","buchen@","gastro@"];
   const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
 
-  const pages = ["", "/kontakt", "/impressum", "/contact", "/about"];
+  function decodeEntities(html) {
+    return html
+      .replace(/&#(\d+);/g, (m, c) => String.fromCharCode(c))
+      .replace(/&#x([0-9a-f]+);/gi, (m, c) => String.fromCharCode(parseInt(c,16)))
+      .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")
+      .replace(/\[at\]/gi,"@").replace(/\(at\)/gi,"@")
+      .replace(/\[dot\]/gi,".").replace(/\(dot\)/gi,".");
+  }
+
+  async function fetchPage(url) {
+    // Try allorigins /get endpoint (returns JSON with CORS)
+    const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+    const r = await fetch(proxy);
+    if (!r.ok) throw new Error("Proxy error " + r.status);
+    const j = await r.json();
+    return j.contents || "";
+  }
+
+  const pages = ["", "/kontakt", "/impressum", "/contact", "/about", "/kontakt.html", "/impressum.html"];
   let foundEmail = null;
 
   for (const path of pages) {
     if (foundEmail) break;
     try {
       const url = selected.website.replace(/\/$/,"") + path;
-      const proxy = "https://corsproxy.io/?" + encodeURIComponent(url);
-      console.log("Fetching:", url);
-      const r = await fetch(proxy);
-      if (!r.ok) continue;
-      const html = await r.text();
+      console.log("Scanning:", url);
+      const html = await fetchPage(url);
+      const decoded = decodeEntities(html);
 
-      let emails = [...new Set((html.match(emailRegex) || []))].map(e => e.toLowerCase());
+      // Search in mailto links first
+      const mailtoMatch = decoded.match(/mailto:([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/i);
+      if (mailtoMatch) {
+        const email = mailtoMatch[1].toLowerCase();
+        if (!junk.some(j => email.includes(j))) { foundEmail = email; break; }
+      }
+
+      // Then regex search
+      let emails = [...new Set((decoded.match(emailRegex) || []))].map(e => e.toLowerCase());
       emails = emails.filter(e => !junk.some(j => e.includes(j)));
-      console.log("Found emails on " + path + ":", emails);
+      console.log("Emails on " + path + ":", emails);
 
-      // Prefer known patterns
       for (const pref of preferred) {
         const match = emails.find(e => e.includes(pref));
         if (match) { foundEmail = match; break; }
@@ -324,7 +347,7 @@ async function findEmail() {
     selected.email = foundEmail;
     toast("Email gefunden: " + foundEmail);
   } else {
-    toast("Kein Email gefunden - manuell eingeben");
+    toast("Kein Email gefunden - bitte manuell eingeben");
   }
   await load();
   selected = prospects.find(p => p.id === selected.id);
